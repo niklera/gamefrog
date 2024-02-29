@@ -20,10 +20,10 @@ all_sprites = pygame.sprite.Group()
 tiles_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
 diamond_group = pygame.sprite.Group()
-win = pygame.image.load('pics/' + "save.jpg")
+win = pygame.image.load('pics/' + "save.png")
 monster_group = pygame.sprite.Group()
 monster, player, level_size_x, level_size_y = [1,1,1,1]
-startcoord = [0, 0]
+
 def terminate():
     pygame.quit()
     sys.exit()
@@ -60,19 +60,19 @@ class Stars(pygame.sprite.Sprite):
         self.image = diamond_image[0]
         self.rect = self.image.get_rect().move(
             tile_size * pos_x, tile_size * pos_y + offset)
-        self.colvostars = 3
         self.time = str(dt.datetime.now().strftime("%d-%B-%y %H:%M:%S"))
 
     def update(self):
         if pygame.sprite.spritecollideany(self, player_group):
             self.kill()
 
-            self.colvostars -= 1
             self.con = sqlite3.connect("froggame.sqlite")  # Подключение к БД
             self.cur = self.con.cursor()
+            colvostars = ((cur.execute("""SELECT* FROM frog_piece""")).fetchall())[-1][2]
+            colvostars -= 1
             self.colvolive = ((self.cur.execute("""SELECT* FROM frog_piece""")).fetchall())[-1][1]
             self.cur.execute(
-                f"INSERT INTO frog_piece (colvo_stars, colvo_live, time) VALUES('{self.colvostars}', '{self.colvolive}', '{self.time}')""")
+                f"INSERT INTO frog_piece (colvo_stars, colvo_live, time) VALUES('{colvostars}', '{self.colvolive}', '{self.time}')""")
             self.con.commit()
 
 
@@ -94,9 +94,7 @@ class Monster(pygame.sprite.Sprite):
         self.ddt = 1
         self.dd = 0
         self.step = 2
-        self.colvostars = 3
-        self.time = str(dt.datetime.now().strftime("%d-%B-%y %H:%M:%S"))
-        self.colvolive = 3
+
 
     def update(self):
         if self.ddt == 1:
@@ -138,14 +136,11 @@ class Player(pygame.sprite.Sprite):
         self.con.commit()
 
 
-
-
     def left(self):
         if pygame.sprite.spritecollideany(self, monster_group):
             self.rect = self.image.get_rect().move(
                 tile_size * 4, tile_size * 5 + offset)
             self.image = load_image('herogreen2.png', -1)
-
             self.table()
 
         elif pygame.sprite.spritecollideany(self, tiles_group):
@@ -156,14 +151,12 @@ class Player(pygame.sprite.Sprite):
 
     def right(self):
         if pygame.sprite.spritecollideany(self, tiles_group):
-            print('ffff')
             self.rect.x -= 5
 
         elif pygame.sprite.spritecollideany(self, monster_group):
             self.rect = self.image.get_rect().move(
                 tile_size * 6, tile_size * 5 + offset)
             self.image = load_image('herogreen2.png', -1)
-
             self.table()
 
         else:
@@ -171,27 +164,23 @@ class Player(pygame.sprite.Sprite):
 
     def up(self):
         if pygame.sprite.spritecollideany(self, tiles_group):
-            print('ffff')
             self.rect.y += self.step
 
         elif pygame.sprite.spritecollideany(self, monster_group):
             self.rect = self.image.get_rect().move(
                 tile_size * 6, tile_size * 5 + offset)
             self.image = load_image('herogreen2.png', -1)
-
             self.table()
         else:
             self.rect.y -= self.step
 
     def down(self):
         if pygame.sprite.spritecollideany(self, tiles_group):
-            print('ffff')
             self.rect.y -= self.step
         elif pygame.sprite.spritecollideany(self, monster_group):
             self.rect = self.image.get_rect().move(
                 tile_size * 6, tile_size * 5 + offset)
             self.image = load_image('herogreen2.png', -1)
-
             self.table()
         else:
             self.rect.y += self.step
@@ -224,12 +213,6 @@ def load_level(screen, level_num):
 
 
     filename = f"data/level_{level_num:02d}.txt"
-
-
-
-
-
-
     with open(filename, 'r') as mapFile:
         level = [[tile_type[s] for s in line.strip()] for line in mapFile]
     for y in range(len(level)):
@@ -344,7 +327,7 @@ def winend_screen():
     con = sqlite3.connect("froggame.sqlite")  # Подключение к БД
     cur = con.cursor()
     cur.execute(
-        f"INSERT INTO frog_piece (colvo_stars, colvo_live, time) VALUES('{3}', '{3}', '{time}')""")
+        f"INSERT INTO frog_piece (colvo_stars, colvo_live, time) VALUES('{3}', '{3}', '--')""")
     con.commit()
 
     for line in intro_text:  #по строчке перебирать будем всю надпись
@@ -446,7 +429,7 @@ while running:
     con = sqlite3.connect("froggame.sqlite")  # Подключение к БД
     cur = con.cursor()
     colvolive = ((cur.execute("""SELECT* FROM frog_piece""")).fetchall())[-1][1]
-    colvostars = ((cur.execute("""SELECT* FROM frog_piece""")).fetchall())[-2][1]
+    colvostars = ((cur.execute("""SELECT* FROM frog_piece""")).fetchall())[-1][2]
     con.commit()
 
 
