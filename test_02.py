@@ -1,4 +1,3 @@
-# Добавляем главного героя и двигаем его
 import sqlite3
 import datetime as dt
 import sys
@@ -303,6 +302,12 @@ def end_screen():
     font30 = pygame.font.Font(None, 30)  #создаем два шрифта
     text_coord = offset + 130
 
+    con = sqlite3.connect("froggame.sqlite")  # Подключение к БД
+    cur = con.cursor()
+    cur.execute(
+        f"INSERT INTO frog_piece (colvo_stars, colvo_live, time) VALUES('{3}', '{3}', '{time}')""")
+    con.commit()
+
     for line in intro_text:  #по строчке перебирать будем всю надпись
         string_rendered = font30.render(line, 1, pygame.Color('black'))
         rect = string_rendered.get_rect()
@@ -335,6 +340,12 @@ def winend_screen():
     tiles_group.draw(screen)   # тайтлы, входяище в группу отрисовываем на заставке
     font30 = pygame.font.Font(None, 30)  #создаем два шрифта
     text_coord = offset + 130
+
+    con = sqlite3.connect("froggame.sqlite")  # Подключение к БД
+    cur = con.cursor()
+    cur.execute(
+        f"INSERT INTO frog_piece (colvo_stars, colvo_live, time) VALUES('{3}', '{3}', '{time}')""")
+    con.commit()
 
     for line in intro_text:  #по строчке перебирать будем всю надпись
         string_rendered = font30.render(line, 1, pygame.Color('black'))
@@ -460,10 +471,5 @@ while running:
     clock.tick(50)
 
 
-con = sqlite3.connect("froggame.sqlite")  # Подключение к БД
-cur = con.cursor()
-cur.execute(
-f"INSERT INTO frog_piece (colvo_stars, colvo_live, time) VALUES('{3}', '{3}', '{time}')""")
-con.commit()
 
 pygame.quit()
